@@ -74,3 +74,88 @@ export const markMultipleAsTaken = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getDailyMedicineLog = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const today = dayjs().startOf("day");
+    const weekday = today.day();
+
+    const medicines = await Medicine.find({
+      userId,
+      startDate: { $lte: today.toDate() },
+      endDate: { $gte: today.toDate() },
+      $or: [
+        { daysOfWeek: { $exists: false } },
+        { daysOfWeek: { $in: [weekday] } },
+      ],
+    });
+
+    const logs = await MedicineLog.find({
+      userId,
+      date: today.toDate(),
+    });
+
+    const logMap = new Map();
+    logs.forEach((log) => {
+      logMap.set(`${log.medicineId}-${log.time}`, log);
+    });
+
+    const result = medicines.flatMap((med) =>
+      med.times.map((time) => {
+        const log = logMap.get(`${med._id}-${time}`);
+        return {
+          medicineId: med._id,
+          medicineName: med.name,
+          scheduledTime: time,
+          takenTime: log?.updatedAt || null,
+          taken: log?.taken || false,
+        };
+      })
+    );
+
+    res.json({
+      date: today.format("YYYY-MM-DD"),
+      doses: result,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getMonthlyMedicineLogs = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const year = parseInt(req.query.year);
+    const month = parseInt(req.query.month);
+    const target =
+      !isNaN(year) && !isNaN(month) ? dayjs(`${year}-${month}-01`) : dayjs();
+
+    const start = target.startOf("month").toDate();
+    const end = target.endOf("month").toDate();
+
+    const logs = await MedicineLog.find({
+      userId,
+      date: { $gte: start, $lte: end },
+    }).populate("medicineId", "name");
+
+    const grouped = {};
+
+    logs.forEach((log) => {
+      const dateStr = dayjs(log.date).format("YYYY-MM-DD");
+      if (!grouped[dateStr]) grouped[dateStr] = [];
+
+      grouped[dateStr].push({
+        medicineId: log.medicineId._id,
+        medicineName: log.medicineId.name,
+        scheduledTime: log.time,
+        takenTime: log.updatedAt,
+        taken: log.taken,
+      });
+    });
+
+    res.json(grouped);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
