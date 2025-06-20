@@ -104,8 +104,15 @@ export const getMedicinesForToday = async (req, res) => {
 // @desc    Get medicines scheduled within current month
 export const getMedicinesForMonth = async (req, res) => {
   try {
-    const startOfMonth = dayjs().startOf("month");
-    const endOfMonth = dayjs().endOf("month");
+    const year = parseInt(req.query.year);
+    const month = parseInt(req.query.month); // 1 = Jan, 12 = Dec
+
+    // Use provided year/month or default to current
+    const targetDate =
+      !isNaN(year) && !isNaN(month) ? dayjs(`${year}-${month}-01`) : dayjs(); // current date
+
+    const startOfMonth = target.startOf("month");
+    const endOfMonth = target.endOf("month");
 
     const medicines = await Medicine.find({
       userId: req.user._id,
