@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import mongoose from "mongoose";
 
 export const protect = async (req, res, next) => {
   let token;
@@ -11,6 +12,11 @@ export const protect = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      if (mongoose.connection.readyState !== 1) {
+        return res.status(503).json({ message: "Database not connected yet" });
+      }
+
       const user = await User.findById(decoded.id).select("-password");
 
       if (!user) {
