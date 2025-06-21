@@ -159,3 +159,71 @@ export const getMonthlyMedicineLogs = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+const createLogsForMedicine = async (medicine) => {
+  const { startDate, endDate, times, daysOfWeek, _id, userId } = medicine;
+
+  const logs = [];
+  let date = dayjs(startDate).startOf("day");
+  const end = dayjs(endDate).endOf("day");
+
+  while (date.isBefore(end)) {
+    const weekday = date.day(); // 0=Sun ... 6=Sat
+
+    if (!daysOfWeek || daysOfWeek.includes(weekday)) {
+      times.forEach((time) => {
+        logs.push({
+          userId,
+          medicineId: _id,
+          date: date.toDate(),
+          time,
+          taken: false,
+        });
+      });
+    }
+
+    date = date.add(1, "day");
+  }
+
+  if (logs.length > 0) {
+    await MedicineLog.insertMany(logs);
+  }
+};
+
+const updateFutureLogsForMedicine = async (medicine) => {
+  const now = dayjs().startOf("day");
+  const { startDate, endDate, times, daysOfWeek, _id, userId } = medicine;
+
+  // 1. Remove only future, untaken logs
+  await MedicineLog.deleteMany({
+    medicineId: _id,
+    userId,
+    date: { $gte: now.toDate() },
+    taken: false,
+  });
+
+  // 2. Recreate logs from today onwards
+  const logs = [];
+  let date = dayjs.max(dayjs(startDate), now);
+  const end = dayjs(endDate).endOf("day");
+
+  while (date.isBefore(end)) {
+    const weekday = date.day();
+    if (!daysOfWeek || daysOfWeek.includes(weekday)) {
+      times.forEach((time) => {
+        logs.push({
+          userId,
+          medicineId: _id,
+          date: date.toDate(),
+          time,
+          taken: false,
+        });
+      });
+    }
+    date = date.add(1, "day");
+  }
+
+  if (logs.length > 0) {
+    await MedicineLog.insertMany(logs);
+  }
+};

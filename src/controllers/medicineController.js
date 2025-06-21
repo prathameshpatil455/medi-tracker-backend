@@ -1,5 +1,9 @@
 import Medicine from "../models/medicineModel.js";
 import dayjs from "dayjs";
+import {
+  createLogsForMedicine,
+  updateFutureLogsForMedicine,
+} from "./medicineLogController.js";
 
 // @desc    Get all medicines for a user
 export const getMedicines = async (req, res) => {
@@ -40,6 +44,9 @@ export const addMedicine = async (req, res) => {
     });
 
     const saved = await newMedicine.save();
+    await createLogsForMedicine(saved);
+    res.status(201).json(saved);
+
     res.status(201).json(saved);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -51,13 +58,14 @@ export const updateMedicine = async (req, res) => {
   try {
     const updated = await Medicine.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
-      req.body, // tabletCount can be included in the request body
+      req.body,
       { new: true }
     );
 
     if (!updated)
       return res.status(404).json({ message: "Medicine not found" });
 
+    await updateFutureLogsForMedicine(updated);
     res.json(updated);
   } catch (error) {
     res.status(400).json({ message: error.message });
