@@ -28,6 +28,9 @@ router.get("/today", getMedicinesForToday);
 // GET current month's medicines
 router.get("/month", getMedicinesForMonth);
 
+// GET low stock warning
+router.get("/refill-warning", getRefillWarnings);
+
 // GET one medicine
 router.get("/:id", getMedicineById);
 
@@ -45,8 +48,5 @@ router.get("/progress/summary", getMedicineProgress);
 
 // GET upcoming doses in next X hours
 router.get("/upcoming", getUpcomingDoses);
-
-// GET low stock warning
-router.get("/refill-warning", getRefillWarnings);
 
 export default router;
