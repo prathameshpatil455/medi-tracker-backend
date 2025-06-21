@@ -160,7 +160,7 @@ export const getMonthlyMedicineLogs = async (req, res) => {
   }
 };
 
-const createLogsForMedicine = async (medicine) => {
+export const createLogsForMedicine = async (medicine) => {
   const { startDate, endDate, times, daysOfWeek, _id, userId } = medicine;
 
   const logs = [];
@@ -190,7 +190,7 @@ const createLogsForMedicine = async (medicine) => {
   }
 };
 
-const updateFutureLogsForMedicine = async (medicine) => {
+export const updateFutureLogsForMedicine = async (medicine) => {
   const now = dayjs().startOf("day");
   const { startDate, endDate, times, daysOfWeek, _id, userId } = medicine;
 
