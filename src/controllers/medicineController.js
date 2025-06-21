@@ -217,19 +217,30 @@ export const getUpcomingDoses = async (req, res) => {
 // @route   GET /api/medicines/refill-warning
 export const getRefillWarnings = async (req, res) => {
   try {
-    const medicines = await Medicine.find({ userId: req.user._id });
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(400).json({ message: "User not found in request" });
+    }
+
+    const medicines = await Medicine.find({ userId });
 
     const warnings = medicines
       .map((med) => {
-        const daysLeft =
-          med.tabletCount && med.frequencyPerDay
-            ? Math.floor(med.tabletCount / med.frequencyPerDay)
-            : null;
+        const { tabletCount, frequencyPerDay } = med;
+
+        let daysLeft = null;
+        if (
+          tabletCount != null &&
+          frequencyPerDay != null &&
+          frequencyPerDay > 0
+        ) {
+          daysLeft = Math.floor(tabletCount / frequencyPerDay);
+        }
 
         return {
           medicineId: med._id,
           name: med.name,
-          tabletCount: med.tabletCount || 0,
+          tabletCount: tabletCount || 0,
           daysLeft,
           refillNeeded: daysLeft !== null && daysLeft < 2,
         };
@@ -238,6 +249,7 @@ export const getRefillWarnings = async (req, res) => {
 
     res.json(warnings);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error in getRefillWarnings:", error.message);
+    res.status(500).json({ message: "Failed to fetch refill warnings" });
   }
 };
