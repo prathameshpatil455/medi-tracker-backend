@@ -1,5 +1,11 @@
 import express from "express";
-import { markMedicineAsTaken } from "../controllers/medicineLogController.js";
+import {
+  getDailyMedicineLog,
+  getMedicineLogsByDate,
+  getMonthlyMedicineLogs,
+  markMedicineAsTaken,
+  markMultipleAsTaken,
+} from "../controllers/medicineLogController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
