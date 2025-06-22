@@ -121,7 +121,7 @@ export const getMedicineLogsByDate = async (req, res) => {
           medicineName: med.name,
           scheduledTime: time,
           taken: existingLog?.taken || false,
-          takenTime: existingLog?.updatedAt || null,
+          takenTime: existingLog?.taken ? existingLog.updatedAt : null,
         });
       }
     }
@@ -252,7 +252,7 @@ export const getMonthlyMedicineLogs = async (req, res) => {
         medicineId: log.medicineId._id,
         medicineName: log.medicineId.name,
         scheduledTime: log.time,
-        takenTime: log.updatedAt,
+        takenTime: log?.taken ? log.updatedAt : null,
         taken: log.taken,
       });
     });
