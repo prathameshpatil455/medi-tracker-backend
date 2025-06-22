@@ -16,6 +16,8 @@ const medicineSchema = new mongoose.Schema(
     daysOfWeek: [{ type: Number }], // 0 = Sunday, 6 = Saturday (for weekly frequency)
     notes: { type: String },
     tabletCount: { type: Number, default: 0 }, // total tablets user has
+    refillReminder: { type: Boolean, default: false },
+    reminderEnabled: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
