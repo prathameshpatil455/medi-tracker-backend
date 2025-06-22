@@ -27,6 +27,8 @@ export const addMedicine = async (req, res) => {
     daysOfWeek,
     notes,
     tabletCount, // NEW
+    refillReminder,
+    reminderEnabled,
   } = req.body;
 
   try {
@@ -41,6 +43,8 @@ export const addMedicine = async (req, res) => {
       daysOfWeek,
       notes,
       tabletCount, // NEW
+      refillReminder: false,
+      reminderEnabled: true,
     });
 
     const saved = await newMedicine.save();
